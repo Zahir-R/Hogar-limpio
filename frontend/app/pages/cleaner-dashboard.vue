@@ -33,7 +33,7 @@
       <main class="p-8 lg:p-12 space-y-12">
         <section class="flex flex-col md:flex-row justify-between items-start gap-6">
           <div>
-            <h2 class="text-4xl font-extrabold tracking-tight font-manrope">¡Buen día, {{ nombreUsuario }}!</h2>
+            <h2 class="text-4xl font-extrabold tracking-tight font-manrope">¡Buen día, {{ nombreTrabajador }}!</h2>
             <p class="text-gray-500 mt-2 text-lg">Tienes {{ trabajosHoy.length }} limpiezas programadas para hoy.</p>
           </div>
           <div class="flex items-center gap-4 bg-white p-2 pr-6 rounded-full shadow-sm border border-gray-100">
@@ -77,11 +77,10 @@
 </template>
 
 <script setup>
-const auth = useAuth();
+const auth = useAuth(); 
 
-// Detectar tu nombre real (Brayan)
-const nombreUsuario = computed(() => {
-  return auth.user.value?.displayName || "Brayan";
+const nombreTrabajador = computed(() => {
+  return auth.user.value?.displayName || auth.user.value?.email?.split('@')[0] || "Trabajador";
 });
 
 const trabajosHoy = [

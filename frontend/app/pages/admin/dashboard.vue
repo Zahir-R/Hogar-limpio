@@ -19,7 +19,7 @@
         </div>
         <div class="flex items-center gap-3">
           <span class="text-sm font-semibold">Brayan (Admin)</span>
-          <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+          <div class="w-8 h-8 bg-gray-200 rounded-full text-center leading-8 text-xs font-bold">B</div>
         </div>
       </header>
 
@@ -49,10 +49,10 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                      {{ user.displayName?.charAt(0) || 'U' }}
+                      {{ user.displayName?.charAt(0).toUpperCase() || 'U' }}
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">{{ user.displayName }}</div>
+                      <div class="text-sm font-medium text-gray-900">{{ user.displayName || 'Sin nombre' }}</div>
                     </div>
                   </div>
                 </td>
@@ -71,57 +71,113 @@
           </table>
         </div>
       </div>
+
+      <div v-if="mostrarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+          <header class="bg-slate-50 px-6 py-4 border-b border-slate-100">
+            <h3 class="font-bold text-lg text-slate-800">Editar Usuario</h3>
+            <p class="text-xs text-slate-500">{{ usuarioAEditar.email }}</p>
+          </header>
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Completo</label>
+              <input v-model="usuarioAEditar.displayName" class="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-blue-500 focus:border-blue-500" type="text" />
+            </div>
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Asignar Rol</label>
+              <select v-model="usuarioAEditar.role" class="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-blue-500">
+                <option value="admin">Administrador</option>
+                <option value="cliente">Cliente</option>
+                <option value="personal_limpieza">Personal de Limpieza</option>
+              </select>
+            </div>
+          </div>
+
+          <footer class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <button @click="mostrarModal = false" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg">
+              Cancelar
+            </button>
+            <button @click="guardarCambios" class="px-6 py-2 text-sm font-bold text-white bg-[#135bec] hover:bg-[#0f4abf] rounded-lg shadow-md">
+              Guardar Cambios
+            </button>
+          </footer>
+        </div>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+
 const usuarios = ref([]);
+const mostrarModal = ref(false);
+const usuarioAEditar = ref({ uid: '', displayName: '', role: '' });
 
 const cargarUsuarios = async () => {
   try {
-    // Intentamos traer los datos
     const response = await $fetch('http://localhost:8000/admin/users', {
       method: 'GET',
-      // Asegúrate de que tu compañero de Auth guarde el token con este nombre exacto
       headers: { 
         'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}` 
       }
     });
-    
-    console.log("Datos recibidos:", response); // Revisa esto en la consola del navegador (F12)
     usuarios.value = response;
   } catch (e) {
     console.error("Error al conectar con FastAPI:", e);
-    // Si falla, al menos sabemos por qué en la consola
   }
 };
 
 const eliminarUsuario = async (uid) => {
   if (confirm("¿Estás seguro de eliminar este usuario?")) {
     try {
-      // USAR LA URL COMPLETA CON EL PUERTO 8000
       await $fetch(`http://localhost:8000/admin/users/${uid}`, { 
         method: 'DELETE' 
       });
-      
-      // Si todo sale bien, lo quitamos de la vista sin recargar
       usuarios.value = usuarios.value.filter(u => u.uid !== uid);
       alert("Usuario eliminado con éxito");
     } catch (e) {
       console.error(e);
-      alert("Error al eliminar: Revisa la terminal de Python");
+      alert("Error al eliminar");
     }
   }
 };
 
 const modificarUsuario = (user) => {
-  // Aquí podrías abrir un modal o redirigir a una página de edición
-  alert("Función para modificar a: " + user.displayName);
+  usuarioAEditar.value = { ...user }; 
+  mostrarModal.value = true;
+};
+
+const guardarCambios = async () => {
+  const token = localStorage.getItem('auth_token');
+
+  try {
+    // Enviamos el nuevo nombre (displayName) y el nuevo rol
+    await $fetch(`http://localhost:8000/admin/users/${usuarioAEditar.value.uid}/update`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: { 
+        new_name: usuarioAEditar.value.displayName, // El nuevo nombre "Jose"
+        new_role: usuarioAEditar.value.role 
+      }
+    });
+    
+    alert("¡Usuario actualizado con éxito!");
+    mostrarModal.value = false;
+    await cargarUsuarios(); // Esto refrescará la tabla y ahora dirá Jose
+    
+  } catch (e) {
+    console.error("Error al guardar:", e.data);
+    alert("Error al actualizar: " + (e.data?.detail || "Error de red"));
+  }
 };
 
 const irARegistro = () => {
-  navigateTo('/signup'); // O la ruta que definieron para el registro
+  navigateTo('/signup');
 };
 
 onMounted(cargarUsuarios);

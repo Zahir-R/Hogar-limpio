@@ -95,13 +95,10 @@
 </template>
 
 <script setup>
-// 1. Usamos el composable de autenticación que ya tienen (useAuth.ts)
 const auth = useAuth(); 
 
-// 2. Creamos el nombre reactivo
-// Si el usuario está logueado, traerá su nombre. Si no, dirá "Mario" por ahora.
 const nombreUsuario = computed(() => {
-  return auth.user.value?.displayName || "Mario";
+  return auth.user.value?.displayName || auth.user.value?.email?.split('@')[0] || "Usuario";
 });
 
 // 3. Traemos los trabajadores (Esto podrías traerlo de tu API de Python luego)

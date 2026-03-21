@@ -69,13 +69,43 @@ const email = ref('');
 const password = ref('');
 const role = ref('cliente');
 
+const router = useRouter(); // Asegúrate de tener esto importado
+
 const handleSignup = async () => {
   try {
-    // Registramos en Firebase con el nombre y el rol elegido
-    await signup(email.value, password.value, displayName.value, role.value);
-    alert("¡Cuenta creada con éxito!");
+    const datosUsuario = {
+      email: email.value,
+      password: password.value,
+      displayName: displayName.value,
+      role: role.value // 'cliente' o 'personal_limpieza'
+    };
+
+    // 1. Enviamos los datos al Backend de Python
+    const response = await $fetch('http://localhost:8000/users/signup-sync', {
+      method: 'POST',
+      body: datosUsuario
+    });
+    
+    // 2. Si el registro fue exitoso (status: "success")
+    if (response.status === "success") {
+      alert("¡Cuenta creada con éxito, Bienvenido " + displayName.value + "!");
+      
+      // 3. REDIRECCIÓN SEGÚN EL ROL
+      if (role.value === 'personal_limpieza') {
+        // Si es trabajador, va a su dashboard de tareas
+        router.push('/cleaner-dashboard');
+      } else {
+        // Si es cliente, va a su dashboard de pedidos
+        router.push('/client-dashboard');
+      }
+    }
   } catch (error) {
-    alert("Error al registrar: " + error.message);
+    const errorDetail = error.data?.detail || "";
+    if (errorDetail.includes("EMAIL_EXISTS")) {
+      alert("Este correo ya está registrado. Intenta con otro.");
+    } else {
+      alert("Error al registrar: " + (errorDetail || error.message));
+    }
   }
 };
 </script>

@@ -1,23 +1,37 @@
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from services.user_service import UserService
 from pydantic import BaseModel
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
+# 1. CONFIGURACIÓN DE FIREBASE (ORDEN CORRECTO)
+# Primero cargamos las credenciales
+cred = credentials.Certificate("hogarlimpio-dffeb-firebase-adminsdk-fbsvc-a0be160afb.json")
+
+# Segundo inicializamos la app
+firebase_admin.initialize_app(cred)
+
+# Tercero creamos el cliente de la base de datos
+db = firestore.client()
+
+# 2. MODELOS DE DATOS (PYDANTIC)
 class RoleUpdateBody(BaseModel):
     new_role: str
 
-cred = credentials.Certificate("hogarlimpio-dffeb-firebase-adminsdk-fbsvc-a0be160afb.json")
-firebase_admin.initialize_app(cred)
+class UserSignup(BaseModel):
+    email: str
+    password: str
+    displayName: str
+    role: str
 
-user_service = UserService()
+class UserUpdate(BaseModel):
+    new_name: str
+    new_role: str
 
-app = FastAPI()
+# 3. CONFIGURACIÓN DE FASTAPI
+app = FastAPI(title="Hogar Limpio API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +43,7 @@ app.add_middleware(
 
 security = HTTPBearer()
 
+# 4. DEPENDENCIAS DE SEGURIDAD
 async def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
     token = res.credentials
     try:
@@ -51,75 +66,23 @@ def require_role(required_role: str):
         return user
     return role_checker
 
-@app.get("/users/me")
-async def read_user_me(user: dict = Depends(get_current_user)):
-    return {"uid": user["uid"], "email": user.get("email"), "role": user.get("role")}
-
-@app.get("/cleaners/dashboard")
-async def cleaners_dashboard(user: dict = Depends(require_role("personal_limpieza"))):
-    return {"message": "Welcome, cleaning staff!"}
-
-@app.get("/cliente/profile")
-async def client_profile(user: dict = Depends(require_role("cliente"))):
-    return {"message": "Your client profile"}
-
+# 5. RUTAS PÚBLICAS Y DE USUARIO
 @app.get("/")
 def home():
-    return {"message": "Public Hello World"}
-
-@app.get("/admin/users")
-async def list_users():
-    db = firestore.client()
-    users_ref = db.collection("users")
-    users = users_ref.stream()
-    result = []
-    for user in users:
-        user_data = user.to_dict()
-        user_data["uid"] = user.id
-        user_data.pop("created_at", None)
-        result.append(user_data)
-    return result
-
-# RUTA PARA ELIMINAR USUARIO (Admin solamente)
-# Quitamos el admin: dict = Depends(require_role("admin"))
-@app.delete("/admin/users/{uid}")
-async def delete_user(uid: str): 
-    try:
-        # 1. Eliminar de Firebase Auth (esto borra el login)
-        auth.delete_user(uid)
-        
-        # 2. Eliminar de Firestore (esto borra los datos de la tabla)
-        db = firestore.client()
-        db.collection("users").document(uid).delete()
-        
-        return {"message": "Usuario eliminado correctamente"}
-    except Exception as e:
-        # Si sale error aquí, lo veremos en la terminal de Python
-        print(f"Error en Python: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-# Modelo para recibir los datos del frontend
-class UserSignup(BaseModel):
-    email: str
-    password: str
-    displayName: str
-    role: str
+    return {"message": "Hogar Limpio API Running"}
 
 @app.post("/users/signup-sync")
 async def sync_user(data: UserSignup):
     try:
-        # 1. Crear usuario en Firebase Auth
+        # Crear en Auth
         user = auth.create_user(
             email=data.email,
             password=data.password,
             display_name=data.displayName
         )
-
-        # 2. Guardar el ROL en Custom Claims (para seguridad)
+        # Asignar Rol en Claims
         auth.set_custom_user_claims(user.uid, {"role": data.role})
-
-        # 3. Guardar información adicional en Firestore
-        db = firestore.client()
+        # Guardar en Firestore
         db.collection("users").document(user.uid).set({
             "displayName": data.displayName,
             "email": data.email,
@@ -127,27 +90,57 @@ async def sync_user(data: UserSignup):
             "created_at": firestore.SERVER_TIMESTAMP,
             "status": "active"
         })
-
         return {"status": "success", "uid": user.uid}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/admin/users/{uid}/role")
-async def update_user_role(uid: str, body: RoleUpdateBody, admin: dict = Depends(require_role("admin"))):
-    user_service.update_user_role(uid, body.new_role)
-    return {"message": f"User role updated to {body.new_role}"}
+@app.get("/users/me")
+async def read_user_me(user: dict = Depends(get_current_user)):
+    return {"uid": user["uid"], "email": user.get("email"), "role": user.get("role")}
 
-class Trabajador(BaseModel):
-    id: str
-    nombre: str
-    precio: float
-    calificacion: float
-    zona: str
+# 6. RUTAS DE ADMINISTRADOR
+@app.get("/admin/users")
+async def list_users(admin: dict = Depends(require_role("admin"))):
+    users_ref = db.collection("users")
+    docs = users_ref.stream()
+    result = []
+    for doc in docs:
+        user_data = doc.to_dict()
+        user_data["uid"] = doc.id
+        user_data.pop("created_at", None)
+        result.append(user_data)
+    return result
 
-# RUTA PARA EL DASHBOARD DEL TRABAJADOR
+@app.post("/admin/users/{uid}/update")
+async def update_user(uid: str, data: UserUpdate, admin=Depends(require_role("admin"))):
+    try:
+        # 1. Actualizar en Firebase Auth (Nombre)
+        auth.update_user(uid, display_name=data.new_name)
+        
+        # 2. Actualizar Rol en Custom Claims
+        auth.set_custom_user_claims(uid, {"role": data.new_role})
+        
+        # 3. Actualizar en Firestore (Ambos)
+        db.collection("users").document(uid).update({
+            "role": data.new_role,
+            "displayName": data.new_name
+        })
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/admin/users/{uid}")
+async def delete_user(uid: str, admin: dict = Depends(require_role("admin"))): 
+    try:
+        auth.delete_user(uid)
+        db.collection("users").document(uid).delete()
+        return {"message": "Usuario eliminado correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# 7. RUTAS DE TRABAJADOR (CLEANER)
 @app.get("/api/cleaner/jobs")
 async def get_cleaner_jobs(user: dict = Depends(require_role("personal_limpieza"))):
-    # Aquí consultarías Firestore buscando trabajos asignados al UID de Brayan
     return [
         {
             "id": "job_101",
@@ -159,8 +152,6 @@ async def get_cleaner_jobs(user: dict = Depends(require_role("personal_limpieza"
         }
     ]
 
-# RUTA PARA FINALIZAR TRABAJO
 @app.post("/api/cleaner/complete/{job_id}")
 async def complete_job(job_id: str, user: dict = Depends(require_role("personal_limpieza"))):
-    # Lógica para cambiar estado en la DB y liberar pago
     return {"status": "success", "message": f"Trabajo {job_id} finalizado"}
