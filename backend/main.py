@@ -43,7 +43,6 @@ app.add_middleware(
 
 security = HTTPBearer()
 
-# 4. DEPENDENCIAS DE SEGURIDAD
 async def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
     token = res.credentials
     try:

@@ -98,8 +98,31 @@
 const auth = useAuth(); 
 
 const nombreUsuario = computed(() => {
-  return auth.user.value?.displayName || auth.user.value?.email?.split('@')[0] || "Usuario";
+  const user = auth.user.value;
+  
+  if (!user) return "Invitado";
+
+  // 1. Intentar sacar el nombre del displayName de Firebase Auth
+  if (user.displayName && user.displayName !== "") {
+    return user.displayName;
+  }
+
+  // 2. Si no hay displayName, intentar sacarlo del token (Custom Claims)
+  // Muchos composables de auth guardan los claims aquí
+  if (user.claims?.name) {
+    return user.claims.name;
+  }
+
+  // 3. Si es un correo, limpiar el nombre antes del @
+  if (user.email) {
+    const namePart = user.email.split('@')[0];
+    // Capitalizar la primera letra (ej: zahir en lugar de zahir)
+    return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+  }
+
+  return "Usuario";
 });
+
 
 // 3. Traemos los trabajadores (Esto podrías traerlo de tu API de Python luego)
 const trabajadores = [

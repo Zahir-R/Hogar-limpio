@@ -57,6 +57,8 @@
             Crear Cuenta
           </button>
         </div>
+        <p class="text-center text-sm text-gray-500 mt-4">
+          ¿Ya tienes una cuenta? <NuxtLink to="/login" class="text-[#135bec] hover:underline">Inicia sesión</NuxtLink></p>
       </form>
     </section>
   </main>
