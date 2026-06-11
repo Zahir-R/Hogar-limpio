@@ -40,6 +40,7 @@ export const useAuth = () => {
         const userCredential = await signInWithEmailAndPassword($auth, email, pass)
 
         const token = await getIdToken(userCredential.user, true)
+        localStorage.setItem('auth_token', token)
 
         console.log(token)
         const userData = await $fetch<UserMeResponse>('http://localhost:8000/users/me', {
@@ -84,6 +85,8 @@ export const useAuth = () => {
                     'Content-Type': 'application/json'
                 },
                 body: {
+                    email: email,
+                    password: pass,
                     displayName: displayName,
                     role: role
                 }
@@ -91,7 +94,8 @@ export const useAuth = () => {
         
             console.log('User synced with backend:', syncResult)
         
-            await getIdToken(userCredential.user, true)
+            const refreshedToken = await getIdToken(userCredential.user, true)
+            localStorage.setItem('auth_token', refreshedToken)
         
             const idTokenResult = await userCredential.user.getIdTokenResult()
             const userRoleClaim = (idTokenResult.claims.role as UserRole) || role
@@ -128,8 +132,10 @@ export const useAuth = () => {
     const getToken = async (forceRefresh = false):  Promise<string | null> => {
         if (!import.meta.client) return null
         const auth = $auth
-        if (!auth.currentUser) return null
-        return await getIdToken(auth.currentUser, forceRefresh)
+        if (auth.currentUser) {
+            return await getIdToken(auth.currentUser, forceRefresh)
+        }
+        return localStorage.getItem('auth_token')
     }
 
     return {

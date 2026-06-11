@@ -46,8 +46,6 @@
 </template>
 
 <script setup lang="ts">
-import { getAuth } from "firebase/auth"; // Añadimos esto
-
 const { login } = useAuth()
 const router = useRouter()
 
@@ -59,20 +57,8 @@ const handleLogin = async () => {
   loading.value = true
   try {
     const result = await login(email.value, password.value)
-    
     if (!result) throw new Error('Login failed')
 
-    // --- ESTO ES LO QUE ARREGLA TU PROBLEMA ---
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (user) {
-      const token = await user.getIdToken();
-      localStorage.setItem('auth_token', token); // Guardamos la "llave"
-      console.log("Token guardado correctamente en LocalStorage");
-    }
-    // -----------------------------------------
-
-    // Redirección según el rol
     if (result.role === 'admin') {
       await router.push('/admin/dashboard')
     } else if (result.role === 'personal_limpieza') {

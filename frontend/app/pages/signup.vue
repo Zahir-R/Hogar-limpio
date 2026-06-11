@@ -1,112 +1,72 @@
 <template>
-  <main class="max-w-4xl mx-auto p-4 md:p-8 font-sans">
-    <nav class="mb-6 flex items-center text-sm text-gray-500">
-      <NuxtLink to="/" class="hover:text-[#135bec] transition-colors">Inicio</NuxtLink>
-      <span class="mx-2 text-gray-400">/</span>
-      <span class="font-medium text-gray-900">Registro de Usuario</span>
-    </nav>
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div class="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
+      <h2 class="text-center text-3xl font-bold text-gray-900">Crear Cuenta</h2>
 
-    <section class="bg-white shadow-sm border border-gray-200 rounded-[8px] overflow-hidden">
-      <header class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-        <h1 class="text-xl font-semibold text-gray-800">Detalles del Usuario</h1>
-        <p class="text-sm text-gray-500 mt-1">Complete la información para crear su cuenta en Hogar Limpio.</p>
-      </header>
-
-      <form @submit.prevent="handleSignup" class="p-6 md:p-8 space-y-8">
-        <div class="flex flex-col items-center md:flex-row md:items-start gap-6">
-          <div class="w-32 h-32 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-            <span class="material-symbols-outlined text-4xl text-gray-400">person</span>
-          </div>
-          <div class="flex-1 space-y-1 pt-2">
-            <h3 class="text-sm font-medium text-gray-700">Foto de Perfil</h3>
-            <p class="text-xs text-gray-500">JPG, PNG. Máximo 2MB.</p>
-          </div>
+      <form @submit.prevent="handleSignup" class="space-y-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+          <input v-model="displayName" type="text" placeholder="Ej: Mario Pérez" class="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
-            <input v-model="displayName" type="text" placeholder="Ej: Mario Pérez" class="block w-full rounded-[8px] border-gray-300 shadow-sm focus:ring-[#135bec] focus:border-[#135bec] sm:text-sm" required />
-          </div>
-
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-            <input v-model="email" type="email" placeholder="correo@ejemplo.com" class="block w-full rounded-[8px] border-gray-300 shadow-sm focus:ring-[#135bec] focus:border-[#135bec] sm:text-sm" required />
-          </div>
-
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-            <input v-model="password" type="password" placeholder="••••••••" class="block w-full rounded-[8px] border-gray-300 shadow-sm focus:ring-[#135bec] focus:border-[#135bec] sm:text-sm" required />
-            <p class="text-[10px] text-gray-400">Mínimo 8 caracteres.</p>
-          </div>
-
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700">¿Qué eres?</label>
-            <select v-model="role" class="block w-full rounded-[8px] border-gray-300 shadow-sm focus:ring-[#135bec] focus:border-[#135bec] sm:text-sm">
-              <option value="cliente">Cliente (Busco limpieza)</option>
-              <option value="personal_limpieza">Trabajador (Ofrezco limpieza)</option>
-            </select>
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+          <input v-model="email" type="email" placeholder="correo@ejemplo.com" class="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
         </div>
 
-        <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
-          <button type="button" @click="$router.push('/')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-[8px] hover:bg-gray-50">
-            Cancelar
-          </button>
-          <button type="submit" class="bg-[#135bec] hover:bg-[#0f48ba] px-6 py-2 text-sm font-medium text-white rounded-[8px] shadow-sm transition-all">
-            Crear Cuenta
-          </button>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+          <input v-model="password" type="password" placeholder="••••••••" class="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+          <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres.</p>
         </div>
-        <p class="text-center text-sm text-gray-500 mt-4">
-          ¿Ya tienes una cuenta? <NuxtLink to="/login" class="text-[#135bec] hover:underline">Inicia sesión</NuxtLink></p>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">¿Qué eres?</label>
+          <select v-model="role" class="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none pr-8" style="background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22%23666%22%3E%3Cpath d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center">
+            <option value="cliente">Cliente (Busco limpieza)</option>
+            <option value="personal_limpieza">Trabajador (Ofrezco limpieza)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full rounded-lg bg-blue-600 p-3 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed">
+          Crear Cuenta
+        </button>
       </form>
-    </section>
-  </main>
+
+      <p class="text-center text-sm text-gray-600">
+        ¿Ya tienes cuenta?
+        <NuxtLink to="/login" class="text-blue-600 hover:underline">Inicia sesión</NuxtLink>
+      </p>
+    </div>
+  </div>
 </template>
 
 <script setup>
-const { signup } = useAuth(); // Usando tu lógica de auth
+const { signup } = useAuth();
 const displayName = ref('');
 const email = ref('');
 const password = ref('');
 const role = ref('cliente');
 
-const router = useRouter(); // Asegúrate de tener esto importado
+const router = useRouter();
 
 const handleSignup = async () => {
   try {
-    const datosUsuario = {
-      email: email.value,
-      password: password.value,
-      displayName: displayName.value,
-      role: role.value // 'cliente' o 'personal_limpieza'
-    };
+    const result = await signup(email.value, password.value, displayName.value, role.value);
 
-    // 1. Enviamos los datos al Backend de Python
-    const response = await $fetch('http://localhost:8000/users/signup-sync', {
-      method: 'POST',
-      body: datosUsuario
-    });
-    
-    // 2. Si el registro fue exitoso (status: "success")
-    if (response.status === "success") {
-      alert("¡Cuenta creada con éxito, Bienvenido " + displayName.value + "!");
-      
-      // 3. REDIRECCIÓN SEGÚN EL ROL
-      if (role.value === 'personal_limpieza') {
-        // Si es trabajador, va a su dashboard de tareas
-        router.push('/cleaner-dashboard');
+    if (result) {
+      if (result.role === 'personal_limpieza') {
+        router.push('/cleaner/profile');
       } else {
-        // Si es cliente, va a su dashboard de pedidos
         router.push('/client-dashboard');
       }
     }
   } catch (error) {
-    const errorDetail = error.data?.detail || "";
-    if (errorDetail.includes("EMAIL_EXISTS")) {
-      alert("Este correo ya está registrado. Intenta con otro.");
+    const msg = error?.message || '';
+    if (msg.includes('EMAIL_EXISTS') || msg.includes('email-already-in-use')) {
+      alert('Este correo ya está registrado. Intenta con otro.');
     } else {
-      alert("Error al registrar: " + (errorDetail || error.message));
+      alert('Error al registrar: ' + (msg || 'Error desconocido'));
     }
   }
 };

@@ -10,6 +10,18 @@
           <span class="material-symbols-outlined">inventory_2</span>
           <span class="font-medium">Mis Servicios</span>
         </a>
+        <NuxtLink to="/cleaner/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+          <span class="material-symbols-outlined">person</span>
+          <span class="font-medium">Mi Perfil</span>
+        </NuxtLink>
+        <NuxtLink to="/cleaner/availability" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+          <span class="material-symbols-outlined">calendar_month</span>
+          <span class="font-medium">Disponibilidad</span>
+        </NuxtLink>
+        <NuxtLink to="/cleaner/bookings" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+          <span class="material-symbols-outlined">book_online</span>
+          <span class="font-medium">Reservas</span>
+        </NuxtLink>
       </nav>
     </aside>
 
@@ -26,7 +38,10 @@
             <p class="text-sm font-bold">{{ nombreTrabajador }}</p>
             <p class="text-xs text-gray-500">Personal de Limpieza</p>
           </div>
-          <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">{{ avatarInicial }}</div>
+          <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
+            <img v-if="fotoPerfil" :src="fotoPerfil" class="w-full h-full object-cover" />
+            <span v-else>{{ avatarInicial }}</span>
+          </div>
         </div>
       </header>
 
@@ -88,7 +103,7 @@
               </div>
               <div class="mt-5 flex flex-wrap gap-2">
                 <button @click="abrirModalEditar(servicio)" class="px-4 py-2 rounded-full bg-[#0056D2] text-white text-sm hover:bg-[#0046ab]">Editar</button>
-                <button @click="eliminarServicio(servicio.id)" class="px-4 py-2 rounded-full bg-red-600 text-white text-sm hover:bg-red-700">Eliminar</button>
+                <button v-if="servicio.titulo !== 'Limpieza básica'" @click="eliminarServicio(servicio.id)" class="px-4 py-2 rounded-full bg-red-600 text-white text-sm hover:bg-red-700">Eliminar</button>
               </div>
             </div>
           </div>
@@ -143,6 +158,7 @@ import { ref, computed, onMounted } from 'vue';
 const auth = useAuth();
 
 const servicios = ref([]);
+const profilePhotoUrl = ref('');
 const mostrarModal = ref(false);
 const isEditMode = ref(false);
 const selectedServiceId = ref(null);
@@ -153,6 +169,16 @@ const form = ref({
   categoria: '',
   ofertante_id: ''
 });
+
+const fotoUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `http://localhost:8000${url}`
+}
+
+const fotoPerfil = computed(() => {
+  return fotoUrl(profilePhotoUrl.value)
+})
 
 const nombreTrabajador = computed(() => {
   return auth.user.value?.displayName || auth.user.value?.email?.split('@')[0] || 'Trabajador';
@@ -271,5 +297,19 @@ const eliminarServicio = async (id) => {
   }
 };
 
-onMounted(cargarServicios);
+const cargarPerfil = async () => {
+  try {
+    const token = await auth.getToken(true);
+    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    profilePhotoUrl.value = perfil.profile_photo_url || '';
+  } catch (e) {
+    console.error('Error cargando perfil:', e);
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([cargarServicios(), cargarPerfil()]);
+});
 </script>
