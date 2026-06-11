@@ -3,10 +3,8 @@ import {
   signInWithEmailAndPassword,
   getIdToken,
   signOut as firebaseSignOut,
-  updateProfile,
-  type User
+  updateProfile
 } from 'firebase/auth'
-import { getId } from 'firebase/installations'
 
 // Expected response from backend
 interface UserMeResponse {
@@ -119,6 +117,7 @@ export const useAuth = () => {
             await firebaseSignOut($auth)
             user.value = null
             userRole.value = null
+            localStorage.removeItem('auth_token')
             await navigateTo('/login')
         } catch (error) {
             console.error('Logout error:', error)

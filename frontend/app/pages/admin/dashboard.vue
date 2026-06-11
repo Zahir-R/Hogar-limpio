@@ -24,6 +24,9 @@
         <button @click="selectedTab = 'pagos'" :class="selectedTab === 'pagos' ? 'bg-blue-50 text-[#135bec]' : 'text-gray-600'" class="w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg">
           <span class="material-symbols-outlined">payments</span> Pagos
         </button>
+        <button @click="auth.logout()" class="text-gray-500 hover:text-white hover:bg-white/5 rounded-lg w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium">
+          <span class="material-symbols-outlined">logout</span> Cerrar Sesión
+        </button>
       </nav>
     </aside>
 
@@ -33,8 +36,11 @@
           <input class="w-full pl-4 pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Buscar admin..." type="text" disabled />
         </div>
         <div class="flex items-center gap-3">
-          <span class="text-sm font-semibold">Admin</span>
-          <div class="w-8 h-8 bg-gray-200 rounded-full text-center leading-8 text-xs font-bold">A</div>
+          <span class="text-sm font-semibold">{{ nombreAdmin }}</span>
+          <div class="w-8 h-8 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold">
+            <img v-if="fotoAdmin" :src="fotoAdmin" class="w-full h-full object-cover" />
+            <span v-else>{{ avatarAdmin }}</span>
+          </div>
         </div>
       </header>
 
@@ -349,6 +355,7 @@ const usuarios = ref([]);
 const serviciosPendientes = ref([]);
 const mostrarModal = ref(false);
 const usuarioAEditar = ref({ uid: '', displayName: '', role: '' });
+const adminPhotoUrl = ref('');
 
 // Zonas state
 const zonas = ref([]);
@@ -370,6 +377,18 @@ const fotoUrl = (url) => {
   if (url.startsWith('http')) return url
   return `http://localhost:8000${url}`
 }
+
+const fotoAdmin = computed(() => {
+  return fotoUrl(adminPhotoUrl.value)
+})
+
+const nombreAdmin = computed(() => {
+  return auth.user.value?.displayName || auth.user.value?.email?.split('@')[0] || 'Admin'
+})
+
+const avatarAdmin = computed(() => {
+  return (auth.user.value?.displayName || auth.user.value?.email || 'A')[0].toUpperCase()
+})
 
 const getToken = async () => {
   return await auth.getToken();
@@ -600,6 +619,18 @@ const guardarPrecios = async () => {
   }
 };
 
+const cargarPerfil = async () => {
+  try {
+    const token = await auth.getToken(true)
+    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    adminPhotoUrl.value = perfil.profile_photo_url || ''
+  } catch (e) {
+    console.error('Error cargando perfil:', e)
+  }
+}
+
 onMounted(async () => {
   await Promise.all([
     cargarUsuarios(),
@@ -607,7 +638,8 @@ onMounted(async () => {
     cargarZonas(),
     cargarPricing(),
     cargarReservas(),
-    cargarPagos()
+    cargarPagos(),
+    cargarPerfil()
   ]);
 });
 </script>

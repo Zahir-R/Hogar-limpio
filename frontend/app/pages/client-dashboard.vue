@@ -14,12 +14,15 @@
           <span class="material-symbols-outlined">book_online</span>
           <span class="font-medium">Mis Reservas</span>
         </NuxtLink>
-      </nav>
-      <div class="p-6">
-        <NuxtLink to="/client/bookings" class="block w-full bg-gradient-to-r from-[#0053cc] to-[#779dff] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg">
-          <span class="material-symbols-outlined">add</span> Nueva Solicitud
+        <NuxtLink to="/client/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+          <span class="material-symbols-outlined">person</span>
+          <span class="font-medium">Mi Perfil</span>
         </NuxtLink>
-      </div>
+        <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)] mx-4">
+          <span class="material-symbols-outlined">logout</span>
+          <span class="font-medium">Cerrar Sesión</span>
+        </button>
+      </nav>
     </aside>
 
     <main class="flex-1 lg:pl-72 min-h-screen relative">
@@ -35,7 +38,10 @@
           </select>
         </div>
         <div class="flex items-center gap-6 ml-8">
-          <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">{{ avatarInicial }}</div>
+          <div class="w-10 h-10 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white font-bold">
+            <img v-if="fotoPerfil" :src="fotoPerfil" class="w-full h-full object-cover" />
+            <span v-else>{{ avatarInicial }}</span>
+          </div>
         </div>
       </header>
 
@@ -204,6 +210,7 @@ const zonas = ref([])
 const loading = ref(true)
 const filtroBusqueda = ref('')
 const filtroZona = ref('')
+const profilePhotoUrl = ref('')
 
 // Booking modal
 const mostrarModal = ref(false)
@@ -233,6 +240,10 @@ const fotoUrl = (url) => {
   if (url.startsWith('http')) return url
   return `http://localhost:8000${url}`
 }
+
+const fotoPerfil = computed(() => {
+  return fotoUrl(profilePhotoUrl.value)
+})
 
 const fechaMin = computed(() => {
   const d = new Date()
@@ -281,6 +292,18 @@ const cargarZonas = async () => {
     zonas.value = await $fetch('http://localhost:8000/api/zonas')
   } catch (e) {
     console.error('Error cargando zonas:', e)
+  }
+}
+
+const cargarPerfil = async () => {
+  try {
+    const token = await auth.getToken(true)
+    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    profilePhotoUrl.value = perfil.profile_photo_url || ''
+  } catch (e) {
+    console.error('Error cargando perfil:', e)
   }
 }
 
@@ -394,7 +417,7 @@ useHead({
 })
 
 onMounted(async () => {
-  await Promise.all([cargarTrabajadores(), cargarZonas()])
+  await Promise.all([cargarTrabajadores(), cargarZonas(), cargarPerfil()])
   loading.value = false
 })
 </script>

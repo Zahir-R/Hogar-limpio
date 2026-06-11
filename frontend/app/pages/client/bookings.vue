@@ -14,13 +14,24 @@
           <span class="material-symbols-outlined">book_online</span>
           <span class="font-medium">Mis Reservas</span>
         </a>
+        <NuxtLink to="/client/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+          <span class="material-symbols-outlined">person</span>
+          <span class="font-medium">Mi Perfil</span>
+        </NuxtLink>
+        <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)] mx-4">
+          <span class="material-symbols-outlined">logout</span>
+          <span class="font-medium">Cerrar Sesión</span>
+        </button>
       </nav>
     </aside>
 
     <main class="flex-1 lg:pl-72 min-h-screen relative">
       <header class="w-full h-20 sticky top-0 flex justify-between items-center px-12 bg-white/80 backdrop-blur-xl z-40">
         <div class="flex items-center gap-3 pl-6">
-          <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">{{ avatarInicial }}</div>
+          <div class="w-10 h-10 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white font-bold">
+            <img v-if="fotoPerfil" :src="fotoPerfil" class="w-full h-full object-cover" />
+            <span v-else>{{ avatarInicial }}</span>
+          </div>
           <div class="text-left">
             <p class="text-sm font-bold">{{ nombreUsuario }}</p>
             <p class="text-xs text-gray-500">Cliente</p>
@@ -101,6 +112,7 @@ const auth = useAuth()
 const reservas = ref([])
 const loading = ref(true)
 const mensaje = ref('')
+const profilePhotoUrl = ref('')
 
 // Review modal
 const mostrarReview = ref(false)
@@ -108,6 +120,16 @@ const reviewReserva = ref(null)
 const reviewRating = ref(0)
 const reviewComment = ref('')
 const enviando = ref(false)
+
+const fotoUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `http://localhost:8000${url}`
+}
+
+const fotoPerfil = computed(() => {
+  return fotoUrl(profilePhotoUrl.value)
+})
 
 const nombreUsuario = computed(() => {
   const user = auth.user.value
@@ -227,5 +249,19 @@ const enviarReview = async () => {
   }
 }
 
-onMounted(cargarReservas)
+const cargarPerfil = async () => {
+  try {
+    const token = await auth.getToken(true)
+    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    profilePhotoUrl.value = perfil.profile_photo_url || ''
+  } catch (e) {
+    console.error('Error cargando perfil:', e)
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([cargarReservas(), cargarPerfil()])
+})
 </script>

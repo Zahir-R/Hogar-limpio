@@ -22,6 +22,10 @@
           <span class="material-symbols-outlined">book_online</span>
           <span class="font-medium">Reservas</span>
         </NuxtLink>
+        <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)] mx-4">
+          <span class="material-symbols-outlined">logout</span>
+          <span class="font-medium">Cerrar Sesión</span>
+        </button>
       </nav>
     </aside>
 
