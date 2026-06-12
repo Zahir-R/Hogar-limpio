@@ -29,8 +29,38 @@
       </nav>
     </aside>
 
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
+          <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest uppercase">Reservas</p>
+        </div>
+      </template>
+      <NuxtLink to="/cleaner-dashboard" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="font-medium">Mis Servicios</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-medium">Mi Perfil</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/availability" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <span class="font-medium">Disponibilidad</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/bookings" class="bg-[#0056D2] text-white rounded-lg mx-4 py-3 px-4 shadow-lg flex items-center gap-3">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Reservas</span>
+      </NuxtLink>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
+
     <div class="lg:pl-72 flex flex-col min-h-screen">
-      <header class="w-full h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-12 z-40">
+      <header class="w-full h-16 lg:h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-4 sm:px-8 lg:px-12 z-40">
+        <HamburgerButton />
         <div class="flex items-center flex-1 max-w-xl">
           <div class="relative w-full">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
@@ -48,7 +78,7 @@
 
       <main class="p-8 lg:p-12 space-y-10">
         <section>
-          <h2 class="text-4xl font-extrabold tracking-tight font-manrope">Mis Reservas</h2>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-manrope">Mis Reservas</h2>
           <p class="text-gray-500 mt-2 text-lg">Gestiona las reservas asignadas a ti.</p>
         </section>
 
@@ -56,7 +86,7 @@
           <div v-if="!reservas.length" class="text-center py-12 text-gray-400">No tienes reservas asignadas.</div>
           <div v-else class="space-y-4">
             <div v-for="r in reservas" :key="r.id" class="rounded-3xl border border-gray-200 p-5">
-              <div class="flex justify-between items-start">
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                 <div>
                   <p class="text-lg font-bold">{{ r.direccion || 'Dirección no especificada' }}</p>
                   <p class="text-sm text-gray-500">{{ r.fecha }} a las {{ r.hora_inicio }} — {{ r.duracion_horas }}h</p>
@@ -68,7 +98,7 @@
                 </div>
                 <span :class="badgeClass(r.estado)" class="text-xs font-semibold uppercase px-3 py-1 rounded-full">{{ r.estado }}</span>
               </div>
-              <div class="mt-4 flex gap-2">
+              <div class="mt-4 flex flex-wrap gap-2">
                 <button v-if="r.estado === 'Pendiente'" @click="confirmarReserva(r.id)" class="px-4 py-2 rounded-full bg-emerald-600 text-white text-sm hover:bg-emerald-700">Confirmar</button>
                 <button v-if="r.estado === 'Confirmado' || r.estado === 'Pendiente'" @click="cancelarReserva(r.id)" class="px-4 py-2 rounded-full bg-red-600 text-white text-sm hover:bg-red-700">Cancelar</button>
               </div>
@@ -86,6 +116,7 @@ import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
 const { public: { apiBase } } = useRuntimeConfig()
+const { confirm: confirmar } = useConfirm()
 const reservas = ref([])
 const mensaje = ref('')
 
@@ -153,7 +184,7 @@ const confirmarReserva = async (id) => {
 }
 
 const cancelarReserva = async (id) => {
-  if (!confirm('¿Cancelar esta reserva?')) return
+  if (!await confirmar('¿Cancelar esta reserva?')) return
   try {
     const token = await auth.getToken(true)
     await $fetch(`${apiBase}/api/reservas/${id}/cancelar`, {

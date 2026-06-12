@@ -24,32 +24,60 @@
         <button @click="selectedTab = 'pagos'" :class="selectedTab === 'pagos' ? 'bg-blue-50 text-[#135bec]' : 'text-gray-600'" class="w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg">
           <span class="material-symbols-outlined">payments</span> Pagos
         </button>
-        <button @click="auth.logout()" class="text-gray-500 hover:text-white hover:bg-white/5 rounded-lg w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium">
+        <button @click="auth.logout()" class="text-gray-600 hover:text-gray-800 hover:bg-white/5 rounded-lg w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium">
           <span class="material-symbols-outlined">logout</span> Cerrar Sesión
         </button>
       </nav>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
-        <div class="max-w-md w-full">
-          <input class="w-full pl-4 pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Buscar admin..." type="text" disabled />
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white">HogarLimpio</h1>
+          <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest uppercase">Admin</p>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm font-semibold">{{ nombreAdmin }}</span>
-          <div class="w-8 h-8 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold">
-            <img v-if="fotoAdmin" :src="fotoAdmin" class="w-full h-full object-cover" />
-            <span v-else>{{ avatarAdmin }}</span>
-          </div>
-        </div>
-      </header>
+      </template>
+      <button @click="selectedTab = 'usuarios'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">group</span>
+        <span class="font-medium">Usuarios</span>
+      </button>
+      <button @click="selectedTab = 'validacion'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">gavel</span>
+        <span class="font-medium">Validación de Servicios</span>
+      </button>
+      <button @click="selectedTab = 'zonas'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">map</span>
+        <span class="font-medium">Zonas</span>
+      </button>
+      <button @click="selectedTab = 'precios'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">payments</span>
+        <span class="font-medium">Precios</span>
+      </button>
+      <button @click="selectedTab = 'reservas'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Reservas</span>
+      </button>
+      <button @click="selectedTab = 'pagos'" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">payments</span>
+        <span class="font-medium">Pagos</span>
+      </button>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
 
-      <div class="flex-1 overflow-y-auto p-6">
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
         <div class="flex flex-col gap-6">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">Panel de Administración</h1>
-              <p class="text-sm text-gray-500">Controla usuarios, valida servicios, gestiona zonas y precios.</p>
+            <div class="flex items-center gap-3">
+              <HamburgerButton />
+              <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Panel de Administración</h1>
+                <p class="text-sm text-gray-500">Controla usuarios, valida servicios, gestiona zonas y precios.</p>
+              </div>
             </div>
           </div>
 
@@ -351,6 +379,8 @@ import { ref, onMounted } from 'vue';
 
 const auth = useAuth();
 const { public: { apiBase } } = useRuntimeConfig();
+const toast = useToast();
+const { confirm: confirmar } = useConfirm();
 const selectedTab = ref('usuarios');
 const usuarios = ref([]);
 const serviciosPendientes = ref([]);
@@ -375,7 +405,7 @@ const pagos = ref([]);
 
 const fotoUrl = (url) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http') || url.startsWith('data:')) return url
   return `${apiBase}${url}`
 }
 
@@ -440,7 +470,7 @@ const cargarPricing = async () => {
 };
 
 const eliminarUsuario = async (uid) => {
-  if (confirm('¿Estás seguro de eliminar este usuario?')) {
+  if (await confirmar('¿Estás seguro de eliminar este usuario?')) {
     try {
       const token = await getToken();
       await $fetch(`${apiBase}/admin/users/${uid}`, {
@@ -448,10 +478,10 @@ const eliminarUsuario = async (uid) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       usuarios.value = usuarios.value.filter(u => u.uid !== uid);
-      alert('Usuario eliminado con éxito');
+      toast.success('Usuario eliminado con éxito');
     } catch (e) {
       console.error(e);
-      alert('Error al eliminar');
+      toast.error('Error al eliminar');
     }
   }
 };
@@ -472,12 +502,12 @@ const guardarCambios = async () => {
         new_role: usuarioAEditar.value.role
       }
     });
-    alert('¡Usuario actualizado con éxito!');
+    toast.success('¡Usuario actualizado con éxito!');
     mostrarModal.value = false;
     await cargarUsuarios();
   } catch (e) {
     console.error('Error al guardar:', e);
-    alert('Error al actualizar: ' + (e.data?.detail || 'Error de red'));
+    toast.error('Error al actualizar: ' + (e.data?.detail || 'Error de red'));
   }
 };
 
@@ -489,11 +519,11 @@ const validarServicio = async (servicioId, estado) => {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: { estado }
     });
-    alert(`Servicio ${estado} correctamente.`);
+    toast.success(`Servicio ${estado} correctamente.`);
     await cargarServiciosPendientes();
   } catch (e) {
     console.error('Error validando servicio:', e);
-    alert('No se pudo validar el servicio.');
+    toast.error('No se pudo validar el servicio.');
   }
 };
 
@@ -555,12 +585,12 @@ const guardarZona = async () => {
     await cargarZonas();
   } catch (e) {
     console.error('Error guardando zona:', e);
-    alert('Error al guardar la zona.');
+    toast.error('Error al guardar la zona.');
   }
 };
 
 const eliminarZona = async (zonaId) => {
-  if (!confirm('¿Desactivar esta zona?')) return;
+  if (!await confirmar('¿Desactivar esta zona?')) return;
   try {
     const token = await getToken();
     await $fetch(`${apiBase}/api/admin/zonas/${zonaId}`, {

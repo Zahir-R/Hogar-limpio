@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#f6f6ff] text-[#272e42] min-h-screen flex font-body">
-    <aside class="fixed left-0 top-0 bottom-0 z-50 flex flex-col h-screen w-72 bg-[#060e20] shadow-lg">
+    <aside class="fixed left-0 top-0 bottom-0 z-50 flex flex-col h-screen w-72 bg-[#060e20] shadow-lg hidden lg:flex">
       <div class="p-8">
         <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
         <p class="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">Digital Concierge</p>
@@ -25,19 +25,45 @@
       </nav>
     </aside>
 
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
+          <p class="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">Digital Concierge</p>
+        </div>
+      </template>
+      <NuxtLink to="/client-dashboard" class="bg-[#0056D2] text-white rounded-lg mx-4 py-3 px-4 shadow-lg flex items-center gap-3">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-medium">Buscar Trabajadores</span>
+      </NuxtLink>
+      <NuxtLink to="/client/bookings" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Mis Reservas</span>
+      </NuxtLink>
+      <NuxtLink to="/client/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-medium">Mi Perfil</span>
+      </NuxtLink>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
+
     <main class="flex-1 lg:pl-72 min-h-screen relative">
-      <header class="w-full h-20 sticky top-0 flex justify-between items-center px-12 bg-white/80 backdrop-blur-xl z-40">
-        <div class="flex-1 max-w-xl flex items-center gap-4">
+      <header class="w-full h-16 lg:h-20 sticky top-0 flex justify-between items-center px-4 sm:px-8 lg:px-12 bg-white/80 backdrop-blur-xl z-40">
+        <HamburgerButton />
+        <div class="flex-1 max-w-xl flex items-center gap-2 sm:gap-4">
           <div class="relative group flex-1">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-            <input v-model="filtroBusqueda" class="w-full pl-12 pr-4 py-3 bg-gray-100 border-none rounded-full focus:ring-2 focus:ring-blue-500/20 text-gray-700" placeholder="Buscar especialistas..." type="text"/>
+            <input v-model="filtroBusqueda" class="w-full pl-12 pr-4 py-2.5 sm:py-3 bg-gray-100 border-none rounded-full focus:ring-2 focus:ring-blue-500/20 text-gray-700 text-sm sm:text-base" placeholder="Buscar..." type="text"/>
           </div>
-          <select v-model="filtroZona" @change="cargarTrabajadores" class="bg-gray-100 border-none rounded-full py-3 pl-4 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 appearance-none" style="background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22%23666%22%3E%3Cpath d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center">
+          <select v-model="filtroZona" @change="cargarTrabajadores" class="hidden sm:block bg-gray-100 border-none rounded-full py-3 pl-4 pr-8 text-sm focus:ring-2 focus:ring-blue-500/20 appearance-none" style="background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22%23666%22%3E%3Cpath d=%22M7 10l5 5 5-5z%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center">
             <option value="">Todas las zonas</option>
             <option v-for="z in zonas" :key="z.id" :value="z.nombre">{{ z.nombre }}</option>
           </select>
         </div>
-        <div class="flex items-center gap-6 ml-8">
+        <div class="flex items-center gap-6 ml-4 sm:ml-8">
           <div class="w-10 h-10 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white font-bold">
             <img v-if="fotoPerfil" :src="fotoPerfil" class="w-full h-full object-cover" />
             <span v-else>{{ avatarInicial }}</span>
@@ -45,10 +71,10 @@
         </div>
       </header>
 
-      <div class="px-12 py-10 space-y-12">
+      <div class="px-4 sm:px-8 lg:px-12 py-6 sm:py-10 space-y-8 sm:space-y-12">
         <section class="flex justify-between items-end">
           <div>
-            <h2 class="text-4xl font-extrabold text-[#272e42] font-manrope tracking-tight">Hola, {{ nombreUsuario }}</h2>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#272e42] font-manrope tracking-tight">Hola, {{ nombreUsuario }}</h2>
             <p class="text-gray-500 mt-2 text-lg">Tu hogar está en excelentes manos hoy.</p>
           </div>
         </section>
@@ -238,7 +264,7 @@ const cargandoReviews = ref(false)
 
 const fotoUrl = (url) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http') || url.startsWith('data:')) return url
   return `${apiBase}${url}`
 }
 

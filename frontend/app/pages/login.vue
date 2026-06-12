@@ -48,6 +48,7 @@
 <script setup lang="ts">
 const { login } = useAuth()
 const router = useRouter()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -68,7 +69,7 @@ const handleLogin = async () => {
     }
   } catch (err: any) {
     console.error('Login error:', err)
-    alert(err.message || 'Error al iniciar sesión')
+    toast.error(err.message || 'Error al iniciar sesión')
   } finally {
     loading.value = false
   }

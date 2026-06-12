@@ -29,8 +29,38 @@
       </nav>
     </aside>
 
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
+          <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest uppercase">Disponibilidad</p>
+        </div>
+      </template>
+      <NuxtLink to="/cleaner-dashboard" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="font-medium">Mis Servicios</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-medium">Mi Perfil</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/availability" class="bg-[#0056D2] text-white rounded-lg mx-4 py-3 px-4 shadow-lg flex items-center gap-3">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <span class="font-medium">Disponibilidad</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/bookings" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Reservas</span>
+      </NuxtLink>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
+
     <div class="lg:pl-72 flex flex-col min-h-screen">
-      <header class="w-full h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-12 z-40">
+      <header class="w-full h-16 lg:h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-4 sm:px-8 lg:px-12 z-40">
+        <HamburgerButton />
         <div class="flex items-center flex-1 max-w-xl">
           <div class="relative w-full">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
@@ -48,7 +78,7 @@
 
       <main class="p-8 lg:p-12 space-y-10">
         <section>
-          <h2 class="text-4xl font-extrabold tracking-tight font-manrope">Disponibilidad</h2>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-manrope">Disponibilidad</h2>
           <p class="text-gray-500 mt-2 text-lg">Define tu horario semanal habitual.</p>
         </section>
 
@@ -57,7 +87,7 @@
         <div v-else class="max-w-3xl space-y-6">
           <div v-for="(dayLabel, key) in diasSemana" :key="key" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-bold mb-4 capitalize">{{ dayLabel }}</h3>
-            <div v-for="(slot, i) in weekdays[key]" :key="i" class="flex items-center gap-4 mb-3">
+            <div v-for="(slot, i) in weekdays[key]" :key="i" class="flex flex-wrap items-center gap-3 sm:gap-4 mb-3">
               <label class="space-y-1">
                 <span class="text-xs text-gray-500">Inicio</span>
                 <input v-model="slot.start" type="time" class="border border-gray-200 rounded-lg p-2 text-sm" />

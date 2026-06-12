@@ -11,8 +11,26 @@
         <div class="flex items-center gap-3">
           <NuxtLink to="/login" class="hidden rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-950 transition hover:border-slate-400 hover:bg-slate-50 md:inline-flex">Iniciar Sesión</NuxtLink>
           <NuxtLink to="/signup" class="inline-flex rounded-2xl bg-[#135bec] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#135bec]/15 transition hover:bg-[#0f4ed2]">Registrarse</NuxtLink>
+          <button class="md:hidden p-2 rounded-lg hover:bg-white/20 transition-colors" @click="mobileMenuOpen = !mobileMenuOpen">
+            <span class="material-symbols-outlined text-2xl text-slate-800">{{ mobileMenuOpen ? 'close' : 'menu' }}</span>
+          </button>
         </div>
       </div>
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        leave-active-class="transition-all duration-150 ease-in"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
+      >
+        <nav v-if="mobileMenuOpen" class="md:hidden border-t border-white/20 bg-white/95 backdrop-blur-xl px-6 py-4 space-y-1" @click="mobileMenuOpen = false">
+          <a href="#servicios" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition">Servicios</a>
+          <a href="#como-funciona" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition">Cómo funciona</a>
+          <NuxtLink to="/login" class="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100 transition">Iniciar Sesión</NuxtLink>
+          <NuxtLink to="/signup" class="block rounded-xl px-4 py-3 text-sm font-medium text-[#135bec] hover:bg-blue-50 transition">Registrarse</NuxtLink>
+        </nav>
+      </Transition>
     </header>
 
     <main class="overflow-hidden pt-24">
@@ -141,6 +159,10 @@
     </footer>
   </div>
 </template>
+
+<script setup>
+const mobileMenuOpen = ref(false)
+</script>
 
 <style scoped>
 @keyframes fadeIn {

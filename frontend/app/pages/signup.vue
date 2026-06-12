@@ -43,6 +43,7 @@
 
 <script setup>
 const { signup } = useAuth();
+const toast = useToast();
 const displayName = ref('');
 const email = ref('');
 const password = ref('');
@@ -64,9 +65,9 @@ const handleSignup = async () => {
   } catch (error) {
     const msg = error?.message || '';
     if (msg.includes('EMAIL_EXISTS') || msg.includes('email-already-in-use')) {
-      alert('Este correo ya está registrado. Intenta con otro.');
+      toast.error('Este correo ya está registrado. Intenta con otro.');
     } else {
-      alert('Error al registrar: ' + (msg || 'Error desconocido'));
+      toast.error('Error al registrar: ' + (msg || 'Error desconocido'));
     }
   }
 };

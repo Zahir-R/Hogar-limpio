@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#f6f6ff] text-[#272e42] min-h-screen flex font-body">
-    <aside class="fixed left-0 top-0 bottom-0 z-50 flex flex-col h-screen w-72 bg-[#060e20] shadow-lg">
+    <aside class="fixed left-0 top-0 bottom-0 z-50 flex flex-col h-screen w-72 bg-[#060e20] shadow-lg hidden lg:flex">
       <div class="p-8">
         <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
         <p class="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">Mis Reservas</p>
@@ -25,9 +25,35 @@
       </nav>
     </aside>
 
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
+          <p class="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">Mis Reservas</p>
+        </div>
+      </template>
+      <NuxtLink to="/client-dashboard" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-medium">Buscar Trabajadores</span>
+      </NuxtLink>
+      <NuxtLink to="/client/bookings" class="bg-[#0056D2] text-white rounded-lg mx-4 py-3 px-4 shadow-lg flex items-center gap-3">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Mis Reservas</span>
+      </NuxtLink>
+      <NuxtLink to="/client/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-medium">Mi Perfil</span>
+      </NuxtLink>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
+
     <main class="flex-1 lg:pl-72 min-h-screen relative">
-      <header class="w-full h-20 sticky top-0 flex justify-between items-center px-12 bg-white/80 backdrop-blur-xl z-40">
-        <div class="flex items-center gap-3 pl-6">
+      <header class="w-full h-16 lg:h-20 sticky top-0 flex justify-between items-center px-4 sm:px-8 lg:px-12 bg-white/80 backdrop-blur-xl z-40">
+        <HamburgerButton />
+        <div class="flex items-center gap-3 pl-2 sm:pl-6">
           <div class="w-10 h-10 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center text-white font-bold">
             <img v-if="fotoPerfil" :src="fotoPerfil" class="w-full h-full object-cover" />
             <span v-else>{{ avatarInicial }}</span>
@@ -39,9 +65,9 @@
         </div>
       </header>
 
-      <div class="px-12 py-10 space-y-8">
+      <div class="px-4 sm:px-8 lg:px-12 py-6 sm:py-10 space-y-8">
         <section>
-          <h2 class="text-4xl font-extrabold text-[#272e42] font-manrope tracking-tight">Mis Reservas</h2>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#272e42] font-manrope tracking-tight">Mis Reservas</h2>
           <p class="text-gray-500 mt-2 text-lg">Gestiona tus servicios agendados.</p>
         </section>
 
@@ -110,6 +136,8 @@ import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
 const { public: { apiBase } } = useRuntimeConfig()
+const toast = useToast()
+const { confirm: confirmar } = useConfirm()
 const reservas = ref([])
 const loading = ref(true)
 const mensaje = ref('')
@@ -124,7 +152,7 @@ const enviando = ref(false)
 
 const fotoUrl = (url) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http') || url.startsWith('data:')) return url
   return `${apiBase}${url}`
 }
 
@@ -209,7 +237,7 @@ const completarReserva = async (r) => {
 }
 
 const cancelarReserva = async (id) => {
-  if (!confirm('¿Cancelar esta reserva?')) return
+  if (!await confirmar('¿Cancelar esta reserva?')) return
   try {
     const token = await getToken()
     await $fetch(`${apiBase}/api/reservas/${id}/cancelar`, {
@@ -241,10 +269,10 @@ const enviarReview = async () => {
     })
     mostrarReview.value = false
     reviewReserva.value = null
-    alert('¡Gracias por tu calificación!')
+    toast.success('¡Gracias por tu calificación!')
   } catch (e) {
     console.error('Error enviando review:', e.data || e)
-    alert('Error al enviar la calificación.')
+    toast.error('Error al enviar la calificación.')
   } finally {
     enviando.value = false
   }

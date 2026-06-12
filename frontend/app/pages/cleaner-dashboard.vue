@@ -29,8 +29,38 @@
       </nav>
     </aside>
 
+    <MobileSidebar>
+      <template #header>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-white font-manrope">Hogar Limpio</h1>
+          <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest uppercase">Panel de Servicios</p>
+        </div>
+      </template>
+      <NuxtLink to="/cleaner-dashboard" class="bg-[#0056D2] text-white rounded-lg mx-4 py-3 px-4 shadow-lg flex items-center gap-3">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="font-medium">Mis Servicios</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/profile" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-medium">Mi Perfil</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/availability" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <span class="font-medium">Disponibilidad</span>
+      </NuxtLink>
+      <NuxtLink to="/cleaner/bookings" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined">book_online</span>
+        <span class="font-medium">Reservas</span>
+      </NuxtLink>
+      <button @click="auth.logout()" class="text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-4 py-3 px-4 transition-all flex items-center gap-3 w-[calc(100%-2rem)]">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar Sesión</span>
+      </button>
+    </MobileSidebar>
+
     <div class="lg:pl-72 flex flex-col min-h-screen">
-      <header class="w-full h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-12 z-40">
+      <header class="w-full h-16 lg:h-20 sticky top-0 bg-white/80 backdrop-blur-xl flex justify-between items-center px-4 sm:px-8 lg:px-12 z-40">
+        <HamburgerButton />
         <div class="flex items-center flex-1 max-w-xl">
           <div class="relative w-full">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
@@ -52,7 +82,7 @@
       <main class="p-8 lg:p-12 space-y-10">
         <section class="flex flex-col md:flex-row justify-between items-start gap-6">
           <div>
-            <h2 class="text-4xl font-extrabold tracking-tight font-manrope">Hola, {{ nombreTrabajador }}</h2>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-manrope">Hola, {{ nombreTrabajador }}</h2>
             <p class="text-gray-500 mt-2 text-lg">Administra tus servicios y controla su estado de aprobación.</p>
           </div>
           <button @click="abrirModalCrear" class="px-5 py-3 rounded-full bg-[#0056D2] text-white font-semibold hover:bg-[#004bb2] shadow-lg">
@@ -161,6 +191,8 @@
 import { ref, computed, onMounted } from 'vue';
 const auth = useAuth();
 const { public: { apiBase } } = useRuntimeConfig();
+const toast = useToast();
+const { confirm: confirmar } = useConfirm();
 
 const servicios = ref([]);
 const profilePhotoUrl = ref('');
@@ -177,7 +209,7 @@ const form = ref({
 
 const fotoUrl = (url) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http') || url.startsWith('data:')) return url
   return `${apiBase}${url}`
 }
 
@@ -262,7 +294,7 @@ const guardarServicio = async () => {
           categoria: form.value.categoria
         }
       });
-      alert('Servicio actualizado correctamente.');
+      toast.success('Servicio actualizado correctamente.');
     } else {
       await $fetch(`${apiBase}/api/servicios/registrar`, {
         method: 'POST',
@@ -275,19 +307,19 @@ const guardarServicio = async () => {
           ofertante_id: auth.user.value?.uid || ''
         }
       });
-      alert('Servicio creado y enviado para validación.');
+      toast.success('Servicio creado y enviado para validación.');
     }
 
     cerrarModal();
     await cargarServicios();
   } catch (error) {
     console.error('Error guardando servicio:', error);
-    alert('Error al guardar el servicio. Revisa los datos e intenta de nuevo.');
+    toast.error('Error al guardar el servicio. Revisa los datos e intenta de nuevo.');
   }
 };
 
 const eliminarServicio = async (id) => {
-  if (!confirm('¿Deseas eliminar este servicio?')) return;
+  if (!await confirmar('¿Deseas eliminar este servicio?')) return;
   try {
     const token = await auth.getToken(true);
     await $fetch(`${apiBase}/api/servicios/${id}`, {
@@ -295,10 +327,10 @@ const eliminarServicio = async (id) => {
       headers: { Authorization: `Bearer ${token}` }
     });
     servicios.value = servicios.value.filter((servicio) => servicio.id !== id);
-    alert('Servicio eliminado correctamente.');
+    toast.success('Servicio eliminado correctamente.');
   } catch (error) {
     console.error('Error eliminando servicio:', error);
-    alert('No se pudo eliminar el servicio.');
+    toast.error('No se pudo eliminar el servicio.');
   }
 };
 
