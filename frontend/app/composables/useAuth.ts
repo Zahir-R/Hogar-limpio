@@ -6,7 +6,6 @@ import {
   updateProfile
 } from 'firebase/auth'
 
-// Expected response from backend
 interface UserMeResponse {
   uid: string
   email: string
@@ -28,6 +27,8 @@ type UserRole = 'cliente' | 'personal_limpieza' | 'admin' | null
 
 export const useAuth = () => {
   const { $auth } = useNuxtApp()
+  const config = useRuntimeConfig().public
+  const apiBase = config.apiBase
   const user = useState<UserData | null>('user', () => null)
   const userRole = useState<UserRole>('userRole', () => null)
 
@@ -40,8 +41,7 @@ export const useAuth = () => {
         const token = await getIdToken(userCredential.user, true)
         localStorage.setItem('auth_token', token)
 
-        console.log(token)
-        const userData = await $fetch<UserMeResponse>('http://localhost:8000/users/me', {
+        const userData = await $fetch<UserMeResponse>(`${apiBase}/users/me`, {
             headers: { Authorization: `Bearer ${token}` }
         })
 
@@ -75,8 +75,7 @@ export const useAuth = () => {
             await updateProfile(userCredential.user, { displayName })
 
             const token = await getIdToken(userCredential.user)
-            console.log(token)
-            const syncResult = await $fetch('http://localhost:8000/users/signup-sync', {
+            const syncResult = await $fetch(`${apiBase}/users/signup-sync`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -89,8 +88,6 @@ export const useAuth = () => {
                     role: role
                 }
             })
-        
-            console.log('User synced with backend:', syncResult)
         
             const refreshedToken = await getIdToken(userCredential.user, true)
             localStorage.setItem('auth_token', refreshedToken)
@@ -128,7 +125,7 @@ export const useAuth = () => {
         return userRole.value === requiredRole
     }
 
-    const getToken = async (forceRefresh = false):  Promise<string | null> => {
+    const getToken = async (forceRefresh = false): Promise<string | null> => {
         if (!import.meta.client) return null
         const auth = $auth
         if (auth.currentUser) {

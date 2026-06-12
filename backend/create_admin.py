@@ -1,48 +1,66 @@
+import os
+import json
 import firebase_admin
 from firebase_admin import credentials, auth, firestore
 
-# Configuración (Asegúrate de que el nombre del JSON sea el correcto)
-cred = credentials.Certificate("hogarlimpio-dffeb-firebase-adminsdk-fbsvc-a0be160afb.json")
+cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+if cred_json:
+    cred = credentials.Certificate(json.loads(cred_json))
+else:
+    cred = credentials.Certificate(
+        "hogarlimpio-dffeb-firebase-adminsdk-fbsvc-a0be160afb.json"
+    )
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+
+def make_admin_by_uid(uid):
+    """Set admin role for an existing user by their Firebase UID."""
+    try:
+        user = auth.get_user(uid)
+        auth.set_custom_user_claims(uid, {"role": "admin"})
+        print(f"Custom claims set for user {uid} ({user.email})")
+
+        db.collection("users").document(uid).set({"role": "admin"}, merge=True)
+        print(f"User role updated in Firestore for {uid}")
+        print(f"\n {user.email or uid} ahora es Administrador.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 def make_admin(email, display_name, password):
     try:
-        # 1. Intentar crear el usuario en Firebase Auth
         try:
             user = auth.create_user(
                 email=email,
                 password=password,
                 display_name=display_name
             )
-            print(f"✅ Usuario creado con UID: {user.uid}")
+            print(f"Usuario creado con UID: {user.uid}")
         except Exception as e:
-            # Si ya existe, lo obtenemos por email
             user = auth.get_user_by_email(email)
-            print(f"ℹ️ El usuario ya existe. UID: {user.uid}")
+            print(f"El usuario ya existe. UID: {user.uid}")
 
-        # 2. Asignar el Custom Claim de 'admin'
         auth.set_custom_user_claims(user.uid, {"role": "admin"})
-        print(f"👑 Rol de 'admin' asignado en Auth Claims.")
+        print(f"Rol de 'admin' asignado en Auth Claims.")
 
-        # 3. Registrar o actualizar en Firestore
         db.collection("users").document(user.uid).set({
             "displayName": display_name,
             "email": email,
             "role": "admin",
             "status": "active"
         }, merge=True)
-        print(f"🗄️ Registro en Firestore actualizado correctamente.")
-        
-        print(f"\n🚀 ¡LISTO! {email} ahora es Administrador.")
+        print(f"Registro en Firestore actualizado correctamente.")
+
+        print(f"\n¡LISTO! {email} ahora es Administrador.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
+
 
 if __name__ == "__main__":
-    # CAMBIA ESTOS DATOS POR LOS TUYOS
-    mi_email = "admin@ejemplo.com"
-    mi_nombre = "Administrador"
-    mi_password = "12341234"
-    
-    make_admin(mi_email, mi_nombre, mi_password)
+    email = os.getenv("ADMIN_EMAIL", "admin@ejemplo.com")
+    name = os.getenv("ADMIN_NAME", "Administrador")
+    password = os.getenv("ADMIN_PASSWORD", "12341234")
+    make_admin(email, name, password)

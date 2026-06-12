@@ -2,6 +2,7 @@
 ```
 cd frontend
 npm i
+cp .env.example .env     # then fill in Firebase values
 npm run dev
 ```
 
@@ -12,13 +13,9 @@ cd backend
 # On Windows
 venv\Scripts\activate
 
-# On Linux/Mac
-python3 -m venv myenv
-
 pip install "fastapi[standard] firebase-admin"
 fastapi dev main.py
 ```
 
-
-El frontend estará en el puerto localhost:3000, y el backend en localhost:8000
-
+Frontend → http://localhost:3000
+Backend  → http://localhost:8000

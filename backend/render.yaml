@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hogarlimpio-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://hogarlimpio-frontend.onrender.com

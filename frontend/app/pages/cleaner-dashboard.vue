@@ -199,7 +199,7 @@ const badgeClass = (estado) => {
 };
 
 const formatPrice = (value) => {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value || 0);
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'BOB' }).format(value || 0);
 };
 
 const cargarServicios = async () => {

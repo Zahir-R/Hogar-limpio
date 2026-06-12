@@ -2,8 +2,9 @@ import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, getIdToken } from "firebase/auth";
 
 export default defineNuxtPlugin(() => {
-    const config = useRuntimeConfig().public.firebase
-    const app = initializeApp(config)
+    const config = useRuntimeConfig().public
+    const apiBase = config.apiBase
+    const app = initializeApp(config.firebase)
     const auth = getAuth(app)
 
     const user = useState('user', () => null)
@@ -15,7 +16,7 @@ export default defineNuxtPlugin(() => {
                 const token = await getIdToken(firebaseUser, false)
                 localStorage.setItem('auth_token', token)
 
-                const userData = await $fetch('http://localhost:8000/users/me', {
+                const userData = await $fetch(`${apiBase}/users/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
 
