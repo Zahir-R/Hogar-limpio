@@ -10,4 +10,4 @@ services:
       - key: FIREBASE_CREDENTIALS_JSON
         sync: false
       - key: CORS_ORIGINS
-        value: https://hogarlimpio-frontend.onrender.com
+        value: https://hogar-limpio-frontend-g9u4.onrender.com
