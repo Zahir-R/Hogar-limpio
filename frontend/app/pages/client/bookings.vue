@@ -109,6 +109,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const reservas = ref([])
 const loading = ref(true)
 const mensaje = ref('')
@@ -124,7 +125,7 @@ const enviando = ref(false)
 const fotoUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 }
 
 const fotoPerfil = computed(() => {
@@ -168,12 +169,12 @@ const getToken = async () => await auth.getToken(true)
 const cargarReservas = async () => {
   try {
     const token = await getToken()
-    const data = await $fetch('http://localhost:8000/api/reservas', {
+    const data = await $fetch(`${apiBase}/api/reservas`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     for (const r of data) {
       try {
-        r.pago = await $fetch(`http://localhost:8000/api/payments/${r.id}`, {
+        r.pago = await $fetch(`${apiBase}/api/payments/${r.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } catch {
@@ -191,7 +192,7 @@ const cargarReservas = async () => {
 const completarReserva = async (r) => {
   try {
     const token = await getToken()
-    await $fetch(`http://localhost:8000/api/reservas/${r.id}/completar`, {
+    await $fetch(`${apiBase}/api/reservas/${r.id}/completar`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -211,7 +212,7 @@ const cancelarReserva = async (id) => {
   if (!confirm('¿Cancelar esta reserva?')) return
   try {
     const token = await getToken()
-    await $fetch(`http://localhost:8000/api/reservas/${id}/cancelar`, {
+    await $fetch(`${apiBase}/api/reservas/${id}/cancelar`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -228,7 +229,7 @@ const enviarReview = async () => {
   enviando.value = true
   try {
     const token = await getToken()
-    await $fetch('http://localhost:8000/api/reviews', {
+    await $fetch(`${apiBase}/api/reviews`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {
@@ -252,7 +253,7 @@ const enviarReview = async () => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true)
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     profilePhotoUrl.value = perfil.profile_photo_url || ''

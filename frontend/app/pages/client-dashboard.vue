@@ -205,6 +205,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const trabajadores = ref([])
 const zonas = ref([])
 const loading = ref(true)
@@ -238,7 +239,7 @@ const cargandoReviews = ref(false)
 const fotoUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 }
 
 const fotoPerfil = computed(() => {
@@ -276,7 +277,7 @@ const cargarTrabajadores = async () => {
   try {
     const token = await auth.getToken(true)
     const params = filtroZona.value ? { zona: filtroZona.value } : {}
-    trabajadores.value = await $fetch('http://localhost:8000/api/workers', {
+    trabajadores.value = await $fetch(`${apiBase}/api/workers`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
       params
@@ -289,7 +290,7 @@ const cargarTrabajadores = async () => {
 
 const cargarZonas = async () => {
   try {
-    zonas.value = await $fetch('http://localhost:8000/api/zonas')
+    zonas.value = await $fetch(`${apiBase}/api/zonas`)
   } catch (e) {
     console.error('Error cargando zonas:', e)
   }
@@ -298,7 +299,7 @@ const cargarZonas = async () => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true)
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     profilePhotoUrl.value = perfil.profile_photo_url || ''
@@ -333,7 +334,7 @@ const calcularPrecio = async () => {
   if (!bookingForm.value.rooms || !bookingForm.value.sqm) return
   try {
     const token = await auth.getToken(true)
-    const result = await $fetch('http://localhost:8000/api/pricing/calcular', {
+    const result = await $fetch(`${apiBase}/api/pricing/calcular`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {
@@ -359,7 +360,7 @@ const confirmarReserva = async () => {
     const token = await auth.getToken(true)
     const worker = workerSeleccionado.value
 
-    const result = await $fetch('http://localhost:8000/api/reservas', {
+    const result = await $fetch(`${apiBase}/api/reservas`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {
@@ -394,7 +395,7 @@ const abrirReviews = async (worker) => {
   reviewsList.value = []
   try {
     const token = await auth.getToken(true)
-    reviewsList.value = await $fetch(`http://localhost:8000/api/reviews/${worker.uid}`, {
+    reviewsList.value = await $fetch(`${apiBase}/api/reviews/${worker.uid}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
   } catch (e) {

@@ -85,6 +85,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const reservas = ref([])
 const mensaje = ref('')
 
@@ -118,12 +119,12 @@ const pagoBadgeClass = (estado) => {
 const cargarReservas = async () => {
   try {
     const token = await auth.getToken(true)
-    const data = await $fetch('http://localhost:8000/api/reservas', {
+    const data = await $fetch(`${apiBase}/api/reservas`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     for (const r of data) {
       try {
-        r.pago = await $fetch(`http://localhost:8000/api/payments/${r.id}`, {
+        r.pago = await $fetch(`${apiBase}/api/payments/${r.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       } catch {
@@ -139,7 +140,7 @@ const cargarReservas = async () => {
 const confirmarReserva = async (id) => {
   try {
     const token = await auth.getToken(true)
-    await $fetch(`http://localhost:8000/api/reservas/${id}/confirmar`, {
+    await $fetch(`${apiBase}/api/reservas/${id}/confirmar`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -155,7 +156,7 @@ const cancelarReserva = async (id) => {
   if (!confirm('¿Cancelar esta reserva?')) return
   try {
     const token = await auth.getToken(true)
-    await $fetch(`http://localhost:8000/api/reservas/${id}/cancelar`, {
+    await $fetch(`${apiBase}/api/reservas/${id}/cancelar`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` }
     })

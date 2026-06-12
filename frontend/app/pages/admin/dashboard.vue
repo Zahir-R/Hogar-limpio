@@ -350,6 +350,7 @@
 import { ref, onMounted } from 'vue';
 
 const auth = useAuth();
+const { public: { apiBase } } = useRuntimeConfig();
 const selectedTab = ref('usuarios');
 const usuarios = ref([]);
 const serviciosPendientes = ref([]);
@@ -375,7 +376,7 @@ const pagos = ref([]);
 const fotoUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 }
 
 const fotoAdmin = computed(() => {
@@ -397,7 +398,7 @@ const getToken = async () => {
 const cargarUsuarios = async () => {
   try {
     const token = await getToken();
-    usuarios.value = await $fetch('http://localhost:8000/admin/users', {
+    usuarios.value = await $fetch(`${apiBase}/admin/users`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -409,7 +410,7 @@ const cargarUsuarios = async () => {
 const cargarServiciosPendientes = async () => {
   try {
     const token = await getToken();
-    serviciosPendientes.value = await $fetch('http://localhost:8000/api/admin/servicios/pendientes', {
+    serviciosPendientes.value = await $fetch(`${apiBase}/api/admin/servicios/pendientes`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -421,7 +422,7 @@ const cargarServiciosPendientes = async () => {
 const cargarZonas = async () => {
   try {
     const token = await getToken();
-    zonas.value = await $fetch('http://localhost:8000/api/admin/zonas', {
+    zonas.value = await $fetch(`${apiBase}/api/admin/zonas`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -432,7 +433,7 @@ const cargarZonas = async () => {
 
 const cargarPricing = async () => {
   try {
-    pricing.value = await $fetch('http://localhost:8000/api/pricing');
+    pricing.value = await $fetch(`${apiBase}/api/pricing`);
   } catch (e) {
     console.error('Error cargando pricing:', e);
   }
@@ -442,7 +443,7 @@ const eliminarUsuario = async (uid) => {
   if (confirm('¿Estás seguro de eliminar este usuario?')) {
     try {
       const token = await getToken();
-      await $fetch(`http://localhost:8000/admin/users/${uid}`, {
+      await $fetch(`${apiBase}/admin/users/${uid}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -463,7 +464,7 @@ const modificarUsuario = (user) => {
 const guardarCambios = async () => {
   try {
     const token = await getToken();
-    await $fetch(`http://localhost:8000/admin/users/${usuarioAEditar.value.uid}/update`, {
+    await $fetch(`${apiBase}/admin/users/${usuarioAEditar.value.uid}/update`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: {
@@ -483,7 +484,7 @@ const guardarCambios = async () => {
 const validarServicio = async (servicioId, estado) => {
   try {
     const token = await getToken();
-    await $fetch(`http://localhost:8000/api/admin/servicios/${servicioId}/validar`, {
+    await $fetch(`${apiBase}/api/admin/servicios/${servicioId}/validar`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: { estado }
@@ -530,7 +531,7 @@ const guardarZona = async () => {
   try {
     const token = await getToken();
     if (editandoZona.value && zonaEditandoId.value) {
-      await $fetch(`http://localhost:8000/api/admin/zonas/${zonaEditandoId.value}`, {
+      await $fetch(`${apiBase}/api/admin/zonas/${zonaEditandoId.value}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: {
@@ -540,7 +541,7 @@ const guardarZona = async () => {
         }
       });
     } else {
-      await $fetch('http://localhost:8000/api/admin/zonas', {
+      await $fetch(`${apiBase}/api/admin/zonas`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: {
@@ -562,7 +563,7 @@ const eliminarZona = async (zonaId) => {
   if (!confirm('¿Desactivar esta zona?')) return;
   try {
     const token = await getToken();
-    await $fetch(`http://localhost:8000/api/admin/zonas/${zonaId}`, {
+    await $fetch(`${apiBase}/api/admin/zonas/${zonaId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -575,7 +576,7 @@ const eliminarZona = async (zonaId) => {
 const cargarReservas = async () => {
   try {
     const token = await getToken();
-    reservas.value = await $fetch('http://localhost:8000/api/reservas', {
+    reservas.value = await $fetch(`${apiBase}/api/reservas`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -587,7 +588,7 @@ const cargarReservas = async () => {
 const cargarPagos = async () => {
   try {
     const token = await getToken();
-    pagos.value = await $fetch('http://localhost:8000/api/admin/payments', {
+    pagos.value = await $fetch(`${apiBase}/api/admin/payments`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -601,7 +602,7 @@ const guardarPrecios = async () => {
   mensajePrecios.value = '';
   try {
     const token = await getToken();
-    await $fetch('http://localhost:8000/api/admin/pricing', {
+    await $fetch(`${apiBase}/api/admin/pricing`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {
@@ -622,7 +623,7 @@ const guardarPrecios = async () => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true)
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     adminPhotoUrl.value = perfil.profile_photo_url || ''

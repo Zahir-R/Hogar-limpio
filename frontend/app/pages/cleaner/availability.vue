@@ -91,6 +91,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const loading = ref(true)
 const guardando = ref(false)
 const mensaje = ref('')
@@ -138,7 +139,7 @@ const cargarTemplate = async () => {
     const uid = auth.user.value?.uid
     if (!uid) return
 
-    const data = await $fetch(`http://localhost:8000/api/availability/${uid}`, {
+    const data = await $fetch(`${apiBase}/api/availability/${uid}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -169,7 +170,7 @@ const guardarTemplate = async () => {
     const payload = { weekdays: weekdays.value }
     console.log('[DEBUG] Saving availability payload:', JSON.stringify(payload))
 
-    await $fetch('http://localhost:8000/api/availability', {
+    await $fetch(`${apiBase}/api/availability`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: payload

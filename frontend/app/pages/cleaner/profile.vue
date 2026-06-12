@@ -152,6 +152,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const zonas = ref([])
 const loading = ref(true)
 const guardando = ref(false)
@@ -168,7 +169,7 @@ const fotoUrl = computed(() => {
   const url = form.value.profile_photo_url
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 })
 
 const form = ref({
@@ -199,7 +200,7 @@ const onFileSelected = async (e) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const result = await $fetch('http://localhost:8000/api/users/profile/photo', {
+    const result = await $fetch(`${apiBase}/api/users/profile/photo`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData
@@ -217,7 +218,7 @@ const onFileSelected = async (e) => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true)
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -233,7 +234,7 @@ const cargarPerfil = async () => {
 
 const cargarZonas = async () => {
   try {
-    zonas.value = await $fetch('http://localhost:8000/api/zonas')
+    zonas.value = await $fetch(`${apiBase}/api/zonas`)
   } catch (e) {
     console.error('Error cargando zonas:', e)
   }
@@ -244,7 +245,7 @@ const cargarReviews = async () => {
   if (!uid) return
   try {
     const token = await auth.getToken(true)
-    reviews.value = await $fetch(`http://localhost:8000/api/reviews/${uid}`, {
+    reviews.value = await $fetch(`${apiBase}/api/reviews/${uid}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
   } catch (e) {
@@ -257,7 +258,7 @@ const guardarPerfil = async () => {
   mensaje.value = ''
   try {
     const token = await auth.getToken(true)
-    await $fetch('http://localhost:8000/api/users/profile', {
+    await $fetch(`${apiBase}/api/users/profile`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {

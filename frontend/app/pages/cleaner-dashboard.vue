@@ -160,6 +160,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 const auth = useAuth();
+const { public: { apiBase } } = useRuntimeConfig();
 
 const servicios = ref([]);
 const profilePhotoUrl = ref('');
@@ -177,7 +178,7 @@ const form = ref({
 const fotoUrl = (url) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 }
 
 const fotoPerfil = computed(() => {
@@ -205,7 +206,7 @@ const formatPrice = (value) => {
 const cargarServicios = async () => {
   try {
     const token = await auth.getToken(true);
-    servicios.value = await $fetch('http://localhost:8000/api/servicios/mis-servicios', {
+    servicios.value = await $fetch(`${apiBase}/api/servicios/mis-servicios`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -251,7 +252,7 @@ const guardarServicio = async () => {
     if (!token) throw new Error('No se pudo obtener el token de autenticación.');
 
     if (isEditMode.value && selectedServiceId.value) {
-      await $fetch(`http://localhost:8000/api/servicios/${selectedServiceId.value}`, {
+      await $fetch(`${apiBase}/api/servicios/${selectedServiceId.value}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: {
@@ -263,7 +264,7 @@ const guardarServicio = async () => {
       });
       alert('Servicio actualizado correctamente.');
     } else {
-      await $fetch('http://localhost:8000/api/servicios/registrar', {
+      await $fetch(`${apiBase}/api/servicios/registrar`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: {
@@ -289,7 +290,7 @@ const eliminarServicio = async (id) => {
   if (!confirm('¿Deseas eliminar este servicio?')) return;
   try {
     const token = await auth.getToken(true);
-    await $fetch(`http://localhost:8000/api/servicios/${id}`, {
+    await $fetch(`${apiBase}/api/servicios/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -304,7 +305,7 @@ const eliminarServicio = async (id) => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true);
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     profilePhotoUrl.value = perfil.profile_photo_url || '';

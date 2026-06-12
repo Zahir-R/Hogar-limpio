@@ -96,6 +96,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const auth = useAuth()
+const { public: { apiBase } } = useRuntimeConfig()
 const loading = ref(true)
 const guardando = ref(false)
 const mensaje = ref('')
@@ -107,7 +108,7 @@ const fotoUrlComputed = computed(() => {
   const url = form.value.profile_photo_url
   if (!url) return ''
   if (url.startsWith('http')) return url
-  return `http://localhost:8000${url}`
+  return `${apiBase}${url}`
 })
 
 const fotoPerfil = computed(() => {
@@ -115,7 +116,7 @@ const fotoPerfil = computed(() => {
   if (profilePhotoUrl.value) {
     const url = profilePhotoUrl.value
     if (url.startsWith('http')) return url
-    return `http://localhost:8000${url}`
+    return `${apiBase}${url}`
   }
   return ''
 })
@@ -150,7 +151,7 @@ const onFileSelected = async (e) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const result = await $fetch('http://localhost:8000/api/users/profile/photo', {
+    const result = await $fetch(`${apiBase}/api/users/profile/photo`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData
@@ -169,7 +170,7 @@ const onFileSelected = async (e) => {
 const cargarPerfil = async () => {
   try {
     const token = await auth.getToken(true)
-    const perfil = await $fetch('http://localhost:8000/api/users/profile', {
+    const perfil = await $fetch(`${apiBase}/api/users/profile`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -186,7 +187,7 @@ const guardarPerfil = async () => {
   mensaje.value = ''
   try {
     const token = await auth.getToken(true)
-    await $fetch('http://localhost:8000/api/users/profile', {
+    await $fetch(`${apiBase}/api/users/profile`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: {
